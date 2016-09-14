@@ -1,0 +1,75 @@
+It is a small server-side html templating language with some server-side scripting in javascript.
+
+The aim is to have a template file like this in the web server:
+
+          <!DOCTYPE html>
+          <html>
+          <script type="server/javascript">
+          importClass(Packages.com.pojo.Person)
+          var id=request.getParameter("id")
+          var person=Person.lookup(id)
+          </script>
+          <head>
+          <title>${person.name}</title>
+          </head>
+          <body>
+          <h1 title="${person.name}">${person.name}</h1>
+          <h2 data-if="person.married" title="${person.spouse}">Spouse:
+          ${person.spouse}</h2>
+          <div data-for-child="person.children">Child: ${child}</div>
+          </body>
+          </html>
+          
+
+which, provided we have a Java class like:
+  package com.pojo;
+  public class Person{
+    public static Person lookup(String id){ return ...; }
+    public String getName(){...}
+    public boolean isMarried(){...}
+    public String getSpouse(){...}
+    public List<String> getChildren(){...}
+  }
+
+renders an html page like:
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <title>Maria</title>
+        </head>
+        <body>
+        <h1 title="Maria">Maria</h1>
+        <h2 title="Pere">Spouse: Pere</h2>
+        <div>Child: Anna</div>
+        <div>Child: Berta</div>
+        <div>Child: Clara</div>
+        </body>
+        </html>
+        
+Write a servlet that responds to requests for html files. The servlet reads the requested file, parses the html, and processes the
+server-side javascript and server-side data-attributes, and finally sends the resulting html to the browser.
+Specification
+
+<script> element
+A server-side script element is marked by the attribute type="server/javascript". If the servlet finds such a script element, it should execute its body as javascript. 
+The script element may put new javascript variables in the engine state, like "person" in the example. Initially, the engine state should have at least one useful variable: "request", being the current HttpServletRequest object. Using that, the template can depend on input from URL parameters.
+From the javascript in the element it is possible to call Java classes. The details of exactly that works depend on which Javascript engine you use.
+So the javascript person.name will be mapped to the Java methods getName() or setName(String) in the usual way.
+
+$-expressions
+ They may appear inside the element bodies and inside the values of attributes. That means, they may not appear in the element tags or in the keys of attributes.
+When the servlet finds an expression, it should evaluate the javascript expression in the current javascript state, and render the result in the html output.
+
+data-if
+An html element may have an attribute with key "data-if".
+When the servlet finds such an attribute, it should evaluate the attribute value as a javascript expression, in the current javascript state.
+If the result is true, the servlet should render the element in the normal way, but without the data-if attribute.
+If the result if false, the servlet should not render the element.
+
+data-for-x
+An html element may have an attribute like "data-for-x", where "x" stands for a something that can be a variable name in javascript.
+When the servlet finds such an attribute, it should evaluate the attribute value as a javascript expression, in the current javascript state.
+
+If the result is an array (or a similar thing), then the servlet should render the element once for every item in the array.
+During each rendering of the element, the variable x stands for the item in the array.
+The result of the javascript evaluation may come from a java method call, therefore objects similar should also work:
