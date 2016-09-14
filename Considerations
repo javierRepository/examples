@@ -1,0 +1,14 @@
+Considerations:
+
+The project run on jetty server, using jetty servlets.
+The pom file import the jetty server plugin and jetty servlet-api
+
+To open the project in Eclipse IDE:
+
+1º: unzip the project into the current workspace.
+2º: go to eclipse, into the package explorer (on the left side) select import.
+3º: select Maven -> Existing Maven project.
+4º: to run the project, fisrt has to configure "Run configurations" -> select Maven biuld .
+5º: in the base directory browse for the project and select it.
+6º: in the Goals put : jetty:run.
+7: go to the web browser and put the URL: http://localhost:8080/ServerSideJsExample/index (optional params: ?id=1,?id=2,?id=3)
